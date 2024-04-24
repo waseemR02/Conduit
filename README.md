@@ -9,4 +9,5 @@ Conduit is an application that acts as a bridge between Azure DevOps and Grafana
 - Display data in Grafana dashboard
 
 ## Tasks
-[x] Fetch RSS Feed and parse to display in grafana
+- [x] Fetch RSS Feed and parse to display in grafana
+![rss feed](docs/assets/rss_feed.png)
