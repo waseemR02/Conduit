@@ -14,8 +14,66 @@ Conduit is an application that acts as a bridge between Azure DevOps and Grafana
 > There are TODO comments in the main script to use example json dumps. Remove them once the sprintlist api endpoint works. Rest should work outside the box
 > The server has certain endpoints which query someother endpoints of its own. Could be better optimized by storing or caching.
 
-## Endpoints 
-/
+## API Endpoints Documentation
+
+### 1. `/sprintlist`
+- **Method:** GET
+- **Description:** Returns a JSON object with a key `value` and the value is a list of sprint objects.
+- **Response Example:**
+    ```json
+    {
+        "value": [
+            {
+            "attributes": {
+                "finishDate": "2021-06-13T00:00:00Z",
+                "startDate": "2021-05-31T00:00:00Z",
+                "timeFrame": "past"
+            },
+            "id": "...",
+            "name": "Sprint007",
+            "path": "...",
+            "url": "..."
+            },
+        ]
+    }
+    ```
+
+### 2. `/parentItems`
+- **Method:** GET
+- **Description:** Returns a JSON object with a key `parent` and the value is a list of parent item objects.
+- **Query Parameters:**
+    - `sprint` (required): The name of the sprint.
+- **Response Example:**
+    ```json
+    {
+        "parent": [
+            {
+            "id": 2539400,
+            "url": "..."
+            },
+            {
+            "id": 3581941,
+            "url": "..."
+            }
+        ]
+    }
+    ```
+
+### 3. `/parentTask`
+- **Method:** GET
+- **Description:** Returns a JSON object containing the details of a parent task.
+- **Query Parameters:**
+    - `sprint` (required): The name of the sprint.
+    - `parentID` (required): The ID of the parent task.
+- **Response Example:**
+    ```json
+    {
+    "AssignedTo": "LastNameUser1, FirstNameUser1",
+    "Custom.TargetVersion": "20.00.00.00",
+    "System.State": "Committed",
+    "System.Title": "..."
+    }
+    ```
 
 ## Features
 
