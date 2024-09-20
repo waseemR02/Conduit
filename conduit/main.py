@@ -22,6 +22,7 @@ def parentItems() -> Response:
     sprint_name = flask_req.args.get("sprint")
     if sprint_name is None:
         parentItems["parent"].append({"id": None, "url": None})
+        return jsonify(parentItems)
 
     if sprint_name == "Sprint086":
         with open("docs/Sprint86Dump.json") as f:
