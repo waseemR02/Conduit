@@ -11,6 +11,7 @@ app = Flask(__name__)
 
 @app.route("/sprintlist", methods=["GET"])
 def sprintlist() -> Response:
+    # TODO: Change file operation block to GET req from Azure
     with open("docs/SprintsDump.json") as f:
         return jsonify(json.load(f))
 
@@ -24,6 +25,7 @@ def parentItems() -> Response:
         parentItems["parent"].append({"id": None, "url": None})
         return jsonify(parentItems)
 
+    # Sample dump
     if sprint_name == "Sprint086":
         with open("docs/Sprint86Dump.json") as f:
             workItems = json.load(f)["workItemRelations"]
@@ -51,10 +53,48 @@ def parentItems() -> Response:
     return jsonify(parentItems)
 
 
-@app.route("/parentTask/2539400", methods=["GET"])
+@app.route("/parentTask", methods=["GET"])
 def parentTask() -> Response:
-    with open("docs/ParentTask1Sprint86Dump.json") as f:
-        return jsonify(json.load(f))
+    sprint_name = flask_req.args.get("sprint")
+    parent_id = int(flask_req.args.get("parentID"))
+
+    parent_details = dict()
+
+    if sprint_name is None:
+        return jsonify({"System.Title": "Sprint Name Error"})
+
+    # Sample Dump
+    if parent_id == 2539400:
+        with open("docs/ParentTask1Sprint86Dump.json") as f:
+            parent_details = json.load(f)["fields"]
+    else:
+        try:
+            parentItems = json.loads(
+                requests.get(
+                    f"http://localhost:5000/parentItems?sprint={sprint_name}"
+                ).text
+            )["parent"]
+
+            for parent in parentItems:
+                if parent["id"] == parent_id:
+                    try:
+                        parent_details = json.loads(
+                            requests.get(f"{parent["url"]}").text
+                        )
+                    except requests.exceptions.RequestException as e:
+                        print(e)
+                        break
+        except requests.exceptions.RequestException as e:
+            print(e)
+
+    parent_details_narrow = {
+        "System.Title": parent_details["System.Title"],
+        "AssignedTo": parent_details["System.AssignedTo"]["displayName"],
+        "System.State": parent_details["System.State"],
+        "Custom.TargetVersion": parent_details["Custom.TargetVersion"],
+    }
+
+    return jsonify(parent_details_narrow)
 
 
 @app.route("/rss", methods=["GET"])
