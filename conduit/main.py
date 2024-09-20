@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 from datetime import datetime
 from flask import Flask, jsonify, Response
+from flask import request as flask_req
 import json
 
 
@@ -14,10 +15,39 @@ def sprintlist() -> Response:
         return jsonify(json.load(f))
 
 
-@app.route("/4136d780-1d04-4709-a4b5-81f89e471ec6", methods=["GET"])
-def sprintdata() -> Response:
-    with open("docs/Sprint86Dump.json") as f:
-        return jsonify(json.load(f))
+@app.route("/parentItems", methods=["GET"])
+def parentItems() -> Response:
+    parentItems = {"parent": []}
+
+    sprint_name = flask_req.args.get("sprint")
+    if sprint_name is None:
+        parentItems["parent"].append({"id": None, "url": None})
+
+    if sprint_name == "Sprint086":
+        with open("docs/Sprint86Dump.json") as f:
+            workItems = json.load(f)["workItemRelations"]
+    else:
+        try:
+            sprints = json.loads(requests.get("http://localhost/5000/sprintlist").text)[
+                "value"
+            ]
+            for sprint in sprints:
+                if sprint["name"] == sprint_name:
+                    try:
+                        workItems = json.loads(requests.get(f"{sprint["url"]}").text)[
+                            "workItemRelations"
+                        ]
+                    except requests.exceptions.RequestException as e:
+                        print(e)
+
+        except requests.exceptions.RequestException as e:
+            print(e)
+
+    for workItem in workItems:
+        if workItem["rel"] is None and workItem["source"] is None:
+            parentItems["parent"].append(workItem["target"])
+
+    return jsonify(parentItems)
 
 
 @app.route("/parentTask/2539400", methods=["GET"])
